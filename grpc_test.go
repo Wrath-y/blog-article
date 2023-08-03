@@ -24,33 +24,25 @@ func TestClient(t *testing.T) {
 
 	// 连接服务器
 	conn, err := consul.Client.GetGRPCInstanceConn(instance)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 	defer conn.Close()
 
 	// 建立gRPC连接
 	var grpcClient proto.ArticleClient
 	grpcClient = proto.NewArticleClient(conn)
-	// 初始化上下文，设置请求超时时间为1秒
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	// 延迟关闭请求会话
-	defer cancel()
-
-	// 调用我们的服务(ListValue方法)
-	r, err := grpcClient.FindById(ctx, &proto.ArticleBaseInfo{Id: 1})
-	if err != nil {
-		log.Fatalf("Call ListStr err: %v", err)
-	}
-	log.Printf("resp: %v", r)
 
 	findById(grpcClient)
 }
 
 func findById(client proto.ArticleClient) {
 	// 初始化上下文，设置请求超时时间为1秒
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	// 延迟关闭请求会话
 	defer cancel()
 
-	// 调用我们的服务(ListValue方法)
+	// 调用我们的服务
 	r, err := client.FindById(ctx, &proto.ArticleBaseInfo{Id: 1})
 	if err != nil {
 		log.Fatalf("Call ListStr err: %v", err)
