@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // consulServiceRegistry implements RegistryI
@@ -138,7 +139,7 @@ func (c consulServiceRegistry) GetServices() ([]string, error) {
 
 func (c consulServiceRegistry) GetGRPCInstanceConn(service InstanceI) (*grpc.ClientConn, error) {
 	// 添加grpc.WithBlock()来等连接建立完再返回，否则会默认使用协程异步创建conn。
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.GetAddress(), service.GetPort()))
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.GetAddress(), service.GetPort()), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
