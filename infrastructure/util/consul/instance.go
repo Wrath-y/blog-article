@@ -19,7 +19,7 @@ type instance struct {
 
 func NewServiceInstance(instanceId, serviceName string, schema, address string, port int, secure bool, metadata map[string]string) *instance {
 	if len(instanceId) == 0 {
-		rand.Seed(time.Now().Unix())
+		rand.New(rand.NewSource(time.Now().Unix()))
 		instanceId = serviceName + "-" + strconv.FormatInt(time.Now().Unix(), 10) + "-" + strconv.Itoa(rand.Intn(9000)+1000)
 	}
 
