@@ -28,6 +28,7 @@ const (
 func (a *Article) Create() {
 	a.Status = ENABLE
 	a.CreateTime = time.Now()
+	a.UpdateTime = time.Now()
 }
 
 func (a *Article) Update() {
