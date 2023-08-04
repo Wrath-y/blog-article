@@ -1,5 +1,8 @@
 package event
 
+import "article/infrastructure/common/context"
+
 type PublisherI interface {
-	Publish() error
+	AddFunc(f func(*context.Context)) PublisherI
+	Publish(ctx *context.Context) error
 }

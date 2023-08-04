@@ -1,19 +1,15 @@
 package event
 
 import (
-	"article/infrastructure/common/event"
-	"strconv"
-	"time"
+	"article/infrastructure/common/context"
 )
 
-type ArticleRead struct {
-	event.Base
-}
-
-func (a *ArticleRead) Create(source string, articleId int64) *ArticleRead {
-	a.Source = source
-	a.Data = strconv.FormatInt(articleId, 10)
-	a.CreateTime = time.Now()
-
-	return a
+func ArticleRead(fList ...func() error) func(ctx *context.Context) {
+	return func(ctx *context.Context) {
+		for _, f := range fList {
+			if err := f(); err != nil {
+				ctx.Logger.ErrorL("增加文章访问次数失败", "", err.Error())
+			}
+		}
+	}
 }
