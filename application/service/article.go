@@ -18,10 +18,14 @@ func NewArticleApplicationService(ctx *context.Context) *ArticleApplicationServi
 	}
 }
 
-func (a *ArticleApplicationService) FindById(id int64) (entity.Article, error) {
-	return a.ArticleDomainService.FindById(id)
+func (a *ArticleApplicationService) FindById(id int64, size int32) ([]*entity.Article, error) {
+	return a.ArticleDomainService.FindById(id, size)
 }
 
-func (a *ArticleApplicationService) Insert(article entity.Article) error {
-	return a.ArticleDomainService.Insert(article)
+func (a *ArticleApplicationService) FindAll() ([]*entity.Article, error) {
+	return a.ArticleDomainService.FindAll()
+}
+
+func (a *ArticleApplicationService) GetById(id int64) (entity.Article, error) {
+	return a.ArticleDomainService.GetById(id)
 }

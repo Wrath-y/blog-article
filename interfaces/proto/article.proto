@@ -1,20 +1,22 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option go_package = "./;proto";
 
-//enum ErrCode {
-//  Success = 0;
-//  ArticleNotFound = 40000;
-//}
-
 service Article {
-  rpc FindById (ArticleBaseInfo) returns (Response) {}
-  rpc Insert (ArticleBaseInfo) returns (Response) {}
+  rpc FindById(FindByIdReq) returns (Response) {}
+  rpc FindAll(google.protobuf.Empty) returns (Response) {}
+  rpc GetById (GetByIdReq) returns (Response) {}
 }
 
-message ArticleBaseInfo {
+message GetByIdReq {
   int64 id = 1;
-  string title = 2;
+}
+
+message FindByIdReq {
+  int64 id = 1;
+  int32 size = 2;
 }
 
 message Response {

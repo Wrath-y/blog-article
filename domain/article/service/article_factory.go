@@ -16,18 +16,43 @@ func (*ArticleFactory) CreateArticlePO(article entity.Article) po.Article {
 	return po.Article{
 		Id:         article.Id,
 		Title:      article.Title,
+		Image:      article.Image,
+		Intro:      article.Intro,
+		Html:       article.Html,
+		Con:        article.Con,
+		Hits:       article.Hits,
+		Status:     article.Status,
+		Source:     article.Source,
+		Tags:       article.Tags,
 		CreateTime: article.CreateTime,
 		UpdateTime: article.UpdateTime,
 	}
 }
 
-func (*ArticleFactory) CreateArticle(p po.Article) entity.Article {
+func (a *ArticleFactory) CreateArticleEntities(poList []*po.Article) []*entity.Article {
+	res := make([]*entity.Article, 0, len(poList))
+	for _, v := range poList {
+		tmp := a.CreateArticleEntity(*v)
+		res = append(res, &tmp)
+	}
+
+	return res
+}
+
+func (*ArticleFactory) CreateArticleEntity(article po.Article) entity.Article {
 	return entity.Article{
-		Id:         p.Id,
-		Title:      p.Title,
-		Status:     p.Status,
-		CreateTime: p.CreateTime,
-		UpdateTime: p.UpdateTime,
+		Id:         article.Id,
+		Title:      article.Title,
+		Image:      article.Image,
+		Intro:      article.Intro,
+		Html:       article.Html,
+		Con:        article.Con,
+		Hits:       article.Hits,
+		Status:     article.Status,
+		Source:     article.Source,
+		Tags:       article.Tags,
+		CreateTime: article.CreateTime,
+		UpdateTime: article.UpdateTime,
 	}
 }
 

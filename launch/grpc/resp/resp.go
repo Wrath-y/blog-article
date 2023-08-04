@@ -8,7 +8,10 @@ import (
 	"encoding/json"
 )
 
-func Success[T comparable](data T) (*proto.Response, error) {
+func Success(data any) (*proto.Response, error) {
+	if data == nil {
+		data = struct{}{}
+	}
 	buf := bytes.NewBuffer(nil)
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)

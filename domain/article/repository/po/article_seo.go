@@ -10,3 +10,7 @@ type ArticleSEO struct {
 	CreateTime time.Time `json:"create_time"`
 	UpdateTime time.Time `json:"update_time"`
 }
+
+func (*ArticleSEO) TableName() string {
+	return "article_seo"
+}

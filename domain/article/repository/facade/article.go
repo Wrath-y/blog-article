@@ -3,7 +3,9 @@ package facade
 import "article/domain/article/repository/po"
 
 type ArticleRepositoryI interface {
-	Insert(po.Article) error
-	Update(po.Article) error
-	FindById(int64) (po.Article, error)
+	FindByLastId(lastId int64, limit int32) ([]*po.Article, error)
+	FindAll() ([]*po.Article, error)
+	GetById(id int64) (po.Article, error)
+	GetHitsById(id int64) (po.Article, error)
+	HitsIncr(id int64) error
 }
