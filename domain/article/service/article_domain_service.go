@@ -13,19 +13,19 @@ import (
 
 type ArticleDomainService struct {
 	*context.Context
-	ArticleFactory
-	ArticleCache
-	facade.ArticleRepositoryI
-	baseEvent.PublisherI
+	articleFactory     ArticleFactory
+	articleCache       ArticleCache
+	articleRepositoryI facade.ArticleRepositoryI
+	publisherI         baseEvent.PublisherI
 }
 
 func NewArticleDomainService(ctx *context.Context) ArticleDomainService {
 	return ArticleDomainService{
 		Context:            ctx,
-		ArticleFactory:     NewArticleFactory(),
-		ArticleCache:       NewArticleCache(),
-		ArticleRepositoryI: persistence.NewArticleRepository(),
-		PublisherI:         baseEvent.NewBasePublisher(),
+		articleFactory:     NewArticleFactory(),
+		articleCache:       NewArticleCache(),
+		articleRepositoryI: persistence.NewArticleRepository(),
+		publisherI:         baseEvent.NewBasePublisher(),
 	}
 }
 
@@ -37,44 +37,44 @@ func (a *ArticleDomainService) FindById(id int64, size int32) ([]*entity.Article
 	var err error
 	articles := make([]*po.Article, 0)
 
-	articles, err = a.ArticleCache.GetList(id, size)
+	articles, err = a.articleCache.GetList(id, size)
 	if err != nil && err != redis.Nil {
 		return nil, err
 	}
 	if len(articles) > 0 {
-		return a.ArticleFactory.CreateArticleEntities(articles), nil
+		return a.articleFactory.CreateArticleEntities(articles), nil
 	}
 
-	articles, err = a.ArticleRepositoryI.FindByLastId(id, size)
+	articles, err = a.articleRepositoryI.FindByLastId(id, size)
 	if err != nil {
 		a.Logger.ErrorL("获取文章列表失败", id, err.Error())
 		return nil, err
 	}
-	if err := a.ArticleCache.SetList(id, size, articles); err != nil {
+	if err := a.articleCache.SetList(id, size, articles); err != nil {
 		a.Logger.ErrorL("缓存文章列表失败", id, err.Error())
 	}
 
-	return a.ArticleFactory.CreateArticleEntities(articles), nil
+	return a.articleFactory.CreateArticleEntities(articles), nil
 }
 
 func (a *ArticleDomainService) FindAll() ([]*entity.Article, error) {
-	articles, err := a.ArticleRepositoryI.FindAll()
+	articles, err := a.articleRepositoryI.FindAll()
 	if err != nil {
 		a.Logger.ErrorL("获取所有文章失败", "", err.Error())
 		return nil, err
 	}
 
-	return a.ArticleFactory.CreateArticleEntities(articles), nil
+	return a.articleFactory.CreateArticleEntities(articles), nil
 }
 
 func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 	defer func() {
-		if err := a.PublisherI.AddFunc(event.ArticleRead(
+		if err := a.publisherI.AddFunc(event.ArticleRead(
 			func() error {
-				return a.ArticleRepositoryI.HitsIncr(id)
+				return a.articleRepositoryI.HitsIncr(id)
 			},
 			func() error {
-				return a.ArticleCache.HitsIncr(id)
+				return a.articleCache.HitsIncr(id)
 			},
 		)).Publish(a.Context); err != nil {
 			a.Logger.ErrorL("发布ArticleRead事件失败", id, err.Error())
@@ -84,25 +84,25 @@ func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 	var err error
 	article := po.Article{}
 
-	article, err = a.ArticleCache.GetDetail(id)
+	article, err = a.articleCache.GetDetail(id)
 	if err != nil && err != redis.Nil {
 		a.Logger.ErrorL("获取文章详情缓存失败", id, err.Error())
 		return entity.Article{}, err
 	}
 	if err == nil {
-		return a.ArticleFactory.CreateArticleEntity(article), nil
+		return a.articleFactory.CreateArticleEntity(article), nil
 	}
 
-	article, err = a.ArticleRepositoryI.GetById(id)
+	article, err = a.articleRepositoryI.GetById(id)
 	if err != nil {
 		a.Logger.ErrorL("获取文章详情失败", id, err.Error())
 		return entity.Article{}, err
 	}
 
 	article.Hits++
-	if err := a.ArticleCache.SetDetail(id, article); err != nil {
+	if err := a.articleCache.SetDetail(id, article); err != nil {
 		a.Logger.ErrorL("缓存文章详情失败", id, err.Error())
 	}
 
-	return a.ArticleFactory.CreateArticleEntity(article), nil
+	return a.articleFactory.CreateArticleEntity(article), nil
 }

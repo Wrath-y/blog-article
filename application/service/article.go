@@ -8,7 +8,7 @@ import (
 
 type ArticleApplicationService struct {
 	*context.Context
-	service.ArticleDomainService
+	articleDomainService service.ArticleDomainService
 }
 
 func NewArticleApplicationService(ctx *context.Context) *ArticleApplicationService {
@@ -19,13 +19,13 @@ func NewArticleApplicationService(ctx *context.Context) *ArticleApplicationServi
 }
 
 func (a *ArticleApplicationService) FindById(id int64, size int32) ([]*entity.Article, error) {
-	return a.ArticleDomainService.FindById(id, size)
+	return a.articleDomainService.FindById(id, size)
 }
 
 func (a *ArticleApplicationService) FindAll() ([]*entity.Article, error) {
-	return a.ArticleDomainService.FindAll()
+	return a.articleDomainService.FindAll()
 }
 
 func (a *ArticleApplicationService) GetById(id int64) (entity.Article, error) {
-	return a.ArticleDomainService.GetById(id)
+	return a.articleDomainService.GetById(id)
 }
