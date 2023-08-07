@@ -3,7 +3,7 @@ package facade
 import (
 	"article/application/service"
 	grpcCtx "article/infrastructure/common/context"
-	"article/infrastructure/util/errcode"
+	"article/infrastructure/common/errcode"
 	"article/interfaces/assembler"
 	"article/interfaces/proto"
 	"article/launch/grpc/resp"

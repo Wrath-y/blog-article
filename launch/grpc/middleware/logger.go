@@ -2,7 +2,7 @@ package middleware
 
 import (
 	grpcCtx "article/infrastructure/common/context"
-	"article/infrastructure/util/errcode"
+	"article/infrastructure/common/errcode"
 	"article/infrastructure/util/logging"
 	"article/infrastructure/util/util/random"
 	"context"
@@ -37,7 +37,7 @@ func UnaryLogger() grpc.UnaryServerInterceptor {
 		rawKB := len(raw) / 1024 // => to KB
 		if rawKB > bodyLimitKB {
 			c.Info("接口请求与响应", string(raw[:1024]), nil)
-			return nil, errcode.WechatBodyTooLarge.WithDetail(fmt.Sprintf("消息限制%dKB, 本消息%dKB", bodyLimitKB, rawKB))
+			return nil, errcode.BlogBodyTooLarge.WithDetail(fmt.Sprintf("消息限制%dKB, 本消息%dKB", bodyLimitKB, rawKB))
 		}
 
 		defer func() {

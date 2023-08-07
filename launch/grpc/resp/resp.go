@@ -1,7 +1,7 @@
 package resp
 
 import (
-	"article/infrastructure/util/errcode"
+	"article/infrastructure/common/errcode"
 	"article/infrastructure/util/util/highperf"
 	"article/interfaces/proto"
 	"bytes"
