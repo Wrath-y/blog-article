@@ -3,6 +3,7 @@ package resp
 import (
 	"article/infrastructure/common/errcode"
 	"article/infrastructure/util/util/highperf"
+	"article/interfaces/dto"
 	"article/interfaces/proto"
 	"bytes"
 	"encoding/json"
@@ -13,9 +14,6 @@ func Success(data any) (*proto.Response, error) {
 	res := &proto.Response{
 		Code: 0,
 		Msg:  "success",
-	}
-	if data == nil {
-		data = struct{}{}
 	}
 	switch data.(type) {
 	case int8:
@@ -28,6 +26,10 @@ func Success(data any) (*proto.Response, error) {
 		res.Data = strconv.FormatInt(data.(int64), 10)
 	case string:
 		res.Data = data.(string)
+	case nil:
+		res.Data = ""
+	case dto.H:
+		res.Data = ""
 	default:
 		buf := bytes.NewBuffer(nil)
 		enc := json.NewEncoder(buf)
