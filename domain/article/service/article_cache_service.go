@@ -1,6 +1,7 @@
 package service
 
 import (
+	"article/domain/article/entity"
 	"article/domain/article/repository/po"
 	"article/infrastructure/util/def"
 	"article/infrastructure/util/goredis"
@@ -15,6 +16,7 @@ import (
 const (
 	ListStrKey    = "blog:article:list:%d:%d"
 	DetailHashKey = "blog:article:%d"
+	//SEODetailHashKey = "blog:article:seo:%d"
 )
 
 type ArticleCache struct {
@@ -46,8 +48,8 @@ func (*ArticleCache) SetList(id int64, size int32, list []*po.Article) error {
 	return goredis.Client.Set(fmt.Sprintf(ListStrKey, id, size), highperf.Bytes2str(b), time.Hour*24*7).Err()
 }
 
-func (*ArticleCache) GetDetail(id int64) (po.Article, error) {
-	article := new(po.Article)
+func (*ArticleCache) GetDetail(id int64) (entity.Article, error) {
+	article := new(entity.Article)
 	m, err := goredis.Client.HGetAll(fmt.Sprintf(DetailHashKey, id)).Result()
 	if err != nil {
 		return *article, err
@@ -67,13 +69,18 @@ func (*ArticleCache) GetDetail(id int64) (po.Article, error) {
 	status, err := strconv.Atoi(m["status"])
 	article.Status = int8(status)
 	article.Source, err = strconv.Atoi(m["source"])
+	article.CommentCount, err = strconv.Atoi(m["comment_count"])
 	article.CreateTime, err = time.Parse(def.ISO8601Layout, m["create_time"])
 	article.UpdateTime, err = time.Parse(def.ISO8601Layout, m["update_time"])
+
+	if err := json.Unmarshal(highperf.Str2bytes(m["article_seo"]), &article.ArticleSEO); err != nil {
+		return *article, err
+	}
 
 	return *article, nil
 }
 
-func (*ArticleCache) SetDetail(id int64, detail po.Article) error {
+func (*ArticleCache) SetDetail(id int64, detail entity.Article) error {
 	b, err := json.Marshal(detail)
 	if err != nil {
 		return err
@@ -82,9 +89,19 @@ func (*ArticleCache) SetDetail(id int64, detail po.Article) error {
 	if err = json.Unmarshal(b, &m); err != nil {
 		return err
 	}
+	values := make([]any, 0, len(m)*2)
+	for k, v := range m {
+		if k == "article_seo" {
+			v, err = json.Marshal(v)
+			if err != nil {
+				return err
+			}
 
+		}
+		values = append(values, k, v)
+	}
 	key := fmt.Sprintf(DetailHashKey, id)
-	if err := goredis.Client.HSet(key, m).Err(); err != nil {
+	if err := goredis.Client.HSet(key, values...).Err(); err != nil {
 		return err
 	}
 
@@ -93,6 +110,9 @@ func (*ArticleCache) SetDetail(id int64, detail po.Article) error {
 
 func (*ArticleCache) HitsIncr(id int64) error {
 	key := fmt.Sprintf(DetailHashKey, id)
+	if exists, err := goredis.Client.Exists(key).Result(); err != nil || exists == 0 {
+		return err
+	}
 	if err := goredis.Client.HIncrBy(key, "hits", 1).Err(); err != nil {
 		return err
 	}

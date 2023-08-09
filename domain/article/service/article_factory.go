@@ -56,24 +56,27 @@ func (*ArticleFactory) CreateArticleEntity(article po.Article) entity.Article {
 	}
 }
 
-func (*ArticleFactory) CreateArticleSEOPO(seo entity.ArticleSEO) po.ArticleSEO {
-	return po.ArticleSEO{
-		Id:         seo.Id,
-		ArticleId:  seo.ArticleId,
-		Name:       seo.Name,
-		Content:    seo.Content,
-		CreateTime: seo.CreateTime,
-		UpdateTime: seo.UpdateTime,
-	}
-}
-
-func (*ArticleFactory) CreateArticleSEO(p po.ArticleSEO) entity.ArticleSEO {
-	return entity.ArticleSEO{
-		Id:         p.Id,
-		ArticleId:  p.ArticleId,
-		Name:       p.Name,
-		Content:    p.Content,
-		CreateTime: p.CreateTime,
-		UpdateTime: p.UpdateTime,
-	}
-}
+//
+//func (*ArticleFactory) CreateArticleSEOPO(seo valueobject.ArticleSEO) po.ArticleSEO {
+//	return po.ArticleSEO{
+//		Id:          seo.Id,
+//		ArticleId:   seo.ArticleId,
+//		Title:       seo.Title,
+//		Keywords:    seo.Keywords,
+//		Description: seo.Description,
+//		CreateTime:  seo.CreateTime,
+//		UpdateTime:  seo.UpdateTime,
+//	}
+//}
+//
+//func (*ArticleFactory) CreateArticleSEOEntity(p po.ArticleSEO) valueobject.ArticleSEO {
+//	return valueobject.ArticleSEO{
+//		Id:          p.Id,
+//		ArticleId:   p.ArticleId,
+//		Title:       p.Title,
+//		Keywords:    p.Keywords,
+//		Description: p.Description,
+//		CreateTime:  p.CreateTime,
+//		UpdateTime:  p.UpdateTime,
+//	}
+//}

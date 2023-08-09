@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func TestFindAll(t *testing.T) {
+func Test_GetCountByArticleId(t *testing.T) {
 	viper.SetConfigName("conf")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("../../../")
@@ -22,7 +22,7 @@ func TestFindAll(t *testing.T) {
 	}
 	consul.Setup()
 
-	instance, err := consul.Client.GetHealthRandomInstance("article")
+	instance, err := consul.Client.GetHealthRandomInstance("comment")
 
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", instance.GetAddress(), instance.GetPort()), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -30,15 +30,14 @@ func TestFindAll(t *testing.T) {
 	}
 	defer conn.Close()
 
-	var grpcClient proto.ArticleClient
-	grpcClient = proto.NewArticleClient(conn)
+	var grpcClient proto.CommentClient
+	grpcClient = proto.NewCommentClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	r, err := grpcClient.FindById(ctx, &proto.FindByIdReq{
-		Id:   0,
-		Size: 1,
+	r, err := grpcClient.GetCountByArticleId(ctx, &proto.OnlyArticleIdReq{
+		ArticleId: 16,
 	})
 	if err != nil {
 		t.Error(err.Error())

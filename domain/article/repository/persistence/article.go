@@ -41,3 +41,8 @@ func (*ArticleRepository) GetHitsById(id int64) (po.Article, error) {
 func (*ArticleRepository) HitsIncr(id int64) error {
 	return db.Orm.Exec("update article set hits = hits + 1 where id = ?", id).Error
 }
+
+func (*ArticleRepository) GetSEOByArticleId(articleId int64) (po.ArticleSEO, error) {
+	articleSEO := po.ArticleSEO{}
+	return articleSEO, db.Orm.Raw("select * from article_seo where article_id = ?", articleId).First(&articleSEO).Error
+}

@@ -8,4 +8,5 @@ type ArticleRepositoryI interface {
 	GetById(id int64) (po.Article, error)
 	GetHitsById(id int64) (po.Article, error)
 	HitsIncr(id int64) error
+	GetSEOByArticleId(articleId int64) (po.ArticleSEO, error)
 }

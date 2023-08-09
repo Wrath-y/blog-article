@@ -8,7 +8,12 @@ import (
 	"article/domain/article/repository/po"
 	"article/infrastructure/common/context"
 	baseEvent "article/infrastructure/common/event"
+	"article/infrastructure/util/consul"
+	"article/infrastructure/util/grpcclient"
+	"article/interfaces/proto"
+	ctx "context"
 	"github.com/go-redis/redis/v7"
+	"time"
 )
 
 type ArticleDomainService struct {
@@ -82,27 +87,83 @@ func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 	}()
 
 	var err error
-	article := po.Article{}
+	articleEntity := entity.Article{}
+	articlePo := po.Article{}
 
-	article, err = a.articleCache.GetDetail(id)
+	articleEntity, err = a.articleCache.GetDetail(id)
 	if err != nil && err != redis.Nil {
 		a.Logger.ErrorL("获取文章详情缓存失败", id, err.Error())
 		return entity.Article{}, err
 	}
 	if err == nil {
-		return a.articleFactory.CreateArticleEntity(article), nil
+		return articleEntity, nil
 	}
 
-	article, err = a.articleRepositoryI.GetById(id)
+	articlePo, err = a.articleRepositoryI.GetById(id)
 	if err != nil {
 		a.Logger.ErrorL("获取文章详情失败", id, err.Error())
 		return entity.Article{}, err
 	}
 
-	article.Hits++
-	if err := a.articleCache.SetDetail(id, article); err != nil {
+	articleEntity = a.articleFactory.CreateArticleEntity(articlePo)
+	articleEntity.IncrHits()
+
+	c, grpcClient, closeFunc, err := a.getCommentClient("comment")
+	if err != nil {
+		a.Logger.ErrorL("获取评论服务client失败", "", err.Error())
+		return articleEntity, nil
+	}
+	defer closeFunc()
+
+	req := &proto.OnlyArticleIdReq{
+		ArticleId: id,
+	}
+	rpcResp, err := grpcClient.GetCountByArticleId(c, req)
+	if err != nil {
+		a.Logger.ErrorL("获取评论数量失败", "", err.Error())
+	}
+	if rpcResp != nil && rpcResp.Data != "" {
+		articleEntity.CreateCommentCount(rpcResp.Data)
+	}
+
+	articleSEO, err := a.articleRepositoryI.GetSEOByArticleId(id)
+	if err != nil {
+		a.Logger.ErrorL("获取文章seo失败", id, err.Error())
+		return articleEntity, nil
+	}
+	articleEntity.CreateArticleSEO(articleSEO)
+
+	if err := a.articleCache.SetDetail(id, articleEntity); err != nil {
 		a.Logger.ErrorL("缓存文章详情失败", id, err.Error())
 	}
 
-	return a.articleFactory.CreateArticleEntity(article), nil
+	return articleEntity, nil
+}
+
+func (a *ArticleDomainService) getCommentClient(serviceName string) (ctx.Context, proto.CommentClient, func(), error) {
+	instance, err := consul.Client.GetHealthRandomInstance(serviceName)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	conn, err := grpcclient.NewClient(instance).GetHealthConn()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	connCloseFunc := func() {
+		if err := conn.Close(); err != nil {
+			a.Logger.ErrorL("grpc链接关闭失败", "", err.Error())
+		}
+	}
+
+	grpcClient := proto.NewCommentClient(conn)
+
+	c, cancel := ctx.WithTimeout(ctx.Background(), time.Second*3)
+	closeFunc := func() {
+		connCloseFunc()
+		cancel()
+	}
+
+	return c, grpcClient, closeFunc, nil
 }

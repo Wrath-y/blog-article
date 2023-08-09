@@ -37,3 +37,11 @@ func (*Article) GetById(ctx context.Context, req *proto.GetByIdReq) (*proto.Resp
 	}
 	return resp.Success(assembler.ToArticleDTO(res))
 }
+
+//func (*Article) GetArticleSeo(ctx context.Context, req *proto.GetByIdReq) (*proto.Response, error) {
+//	res, err := service.NewArticleApplicationService(grpcCtx.GetContext(ctx)).GetArticleSeo(req.Id)
+//	if err != nil {
+//		return resp.FailWithErrCode(errcode.ArticleNotExists)
+//	}
+//	return resp.Success(assembler.ToArticleSEODTO(res))
+//}
