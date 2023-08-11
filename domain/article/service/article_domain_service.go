@@ -108,6 +108,13 @@ func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 	articleEntity = a.articleFactory.CreateArticleEntity(articlePo)
 	articleEntity.IncrHits()
 
+	articleSEO, err := a.articleRepositoryI.GetSEOByArticleId(id)
+	if err != nil {
+		a.Logger.ErrorL("获取文章seo失败", id, err.Error())
+		return articleEntity, nil
+	}
+	articleEntity.CreateArticleSEO(articleSEO)
+
 	c, grpcClient, closeFunc, err := a.getCommentClient("comment")
 	if err != nil {
 		a.Logger.ErrorL("获取评论服务client失败", "", err.Error())
@@ -125,13 +132,6 @@ func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 	if rpcResp != nil && rpcResp.Data != "" {
 		articleEntity.CreateCommentCount(rpcResp.Data)
 	}
-
-	articleSEO, err := a.articleRepositoryI.GetSEOByArticleId(id)
-	if err != nil {
-		a.Logger.ErrorL("获取文章seo失败", id, err.Error())
-		return articleEntity, nil
-	}
-	articleEntity.CreateArticleSEO(articleSEO)
 
 	if err := a.articleCache.SetDetail(id, articleEntity); err != nil {
 		a.Logger.ErrorL("缓存文章详情失败", id, err.Error())
