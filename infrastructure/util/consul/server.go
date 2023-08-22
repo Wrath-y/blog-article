@@ -41,7 +41,7 @@ func (c *consulServiceRegistry) Register(si InstanceI) error {
 	}
 	registration.Tags = tags
 	registration.Meta = si.GetMetadata()
-	registration.Address = "127.0.0.1"
+	registration.Address = si.GetAddress()
 
 	// 增加consul健康检查回调函数
 	check := new(api.AgentServiceCheck)
