@@ -6,8 +6,8 @@ import (
 	"article/infrastructure/util/def"
 	"article/infrastructure/util/goredis"
 	"article/infrastructure/util/util/highperf"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/go-redis/redis/v7"
 	"strconv"
 	"time"
@@ -33,7 +33,7 @@ func (*ArticleCache) GetList(id int64, size int32) ([]*po.Article, error) {
 		return nil, err
 	}
 
-	if err := json.Unmarshal(b, &articles); err != nil {
+	if err := sonic.Unmarshal(b, &articles); err != nil {
 		return nil, err
 	}
 
@@ -41,7 +41,7 @@ func (*ArticleCache) GetList(id int64, size int32) ([]*po.Article, error) {
 }
 
 func (*ArticleCache) SetList(id int64, size int32, list []*po.Article) error {
-	b, err := json.Marshal(list)
+	b, err := sonic.Marshal(list)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (*ArticleCache) GetDetail(id int64) (entity.Article, error) {
 	article.CreateTime, err = time.Parse(def.ISO8601Layout, m["create_time"])
 	article.UpdateTime, err = time.Parse(def.ISO8601Layout, m["update_time"])
 
-	if err := json.Unmarshal(highperf.Str2bytes(m["article_seo"]), &article.ArticleSEO); err != nil {
+	if err := sonic.Unmarshal(highperf.Str2bytes(m["article_seo"]), &article.ArticleSEO); err != nil {
 		return *article, err
 	}
 
@@ -81,18 +81,18 @@ func (*ArticleCache) GetDetail(id int64) (entity.Article, error) {
 }
 
 func (*ArticleCache) SetDetail(id int64, detail entity.Article) error {
-	b, err := json.Marshal(detail)
+	b, err := sonic.Marshal(detail)
 	if err != nil {
 		return err
 	}
 	m := make(map[string]any)
-	if err = json.Unmarshal(b, &m); err != nil {
+	if err = sonic.Unmarshal(b, &m); err != nil {
 		return err
 	}
 	values := make([]any, 0, len(m)*2)
 	for k, v := range m {
 		if k == "article_seo" {
-			v, err = json.Marshal(v)
+			v, err = sonic.Marshal(v)
 			if err != nil {
 				return err
 			}

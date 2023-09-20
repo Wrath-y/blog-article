@@ -3,8 +3,8 @@ package nacos
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"io"
 	"net/http"
 	"net/url"
@@ -106,7 +106,7 @@ func (n *NacosConfig) login() error {
 
 	loginResp := &LoginResponse{}
 
-	if err := json.Unmarshal(bb, loginResp); err != nil {
+	if err := sonic.Unmarshal(bb, loginResp); err != nil {
 		return err
 	}
 	n.accessToken = loginResp.AccessToken

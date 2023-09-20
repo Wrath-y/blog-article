@@ -6,8 +6,8 @@ import (
 	"article/infrastructure/util/logging"
 	"article/infrastructure/util/util/random"
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"time"
@@ -32,7 +32,7 @@ func UnaryLogger() grpc.UnaryServerInterceptor {
 		logger.Setv1(info.FullMethod)
 		c.Logger = logger
 
-		raw, _ := json.Marshal(req)
+		raw, _ := sonic.Marshal(req)
 
 		rawKB := len(raw) / 1024 // => to KB
 		if rawKB > bodyLimitKB {
@@ -41,7 +41,7 @@ func UnaryLogger() grpc.UnaryServerInterceptor {
 		}
 
 		defer func() {
-			out, _ := json.Marshal(resp)
+			out, _ := sonic.Marshal(resp)
 			md, _ := metadata.FromIncomingContext(c)
 
 			request := map[string]any{

@@ -6,7 +6,7 @@ import (
 	"article/interfaces/dto"
 	"article/interfaces/proto"
 	"bytes"
-	"encoding/json"
+	"github.com/bytedance/sonic"
 	"strconv"
 )
 
@@ -32,8 +32,7 @@ func Success(data any) (*proto.Response, error) {
 		res.Data = ""
 	default:
 		buf := bytes.NewBuffer(nil)
-		enc := json.NewEncoder(buf)
-		enc.SetEscapeHTML(false)
+		enc := sonic.ConfigDefault.NewEncoder(buf)
 		if err := enc.Encode(data); err != nil {
 			return nil, err
 		}
