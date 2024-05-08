@@ -12,6 +12,7 @@ import (
 	"article/infrastructure/util/grpcclient"
 	"article/interfaces/proto"
 	ctx "context"
+	"errors"
 	"github.com/go-redis/redis/v7"
 	"time"
 )
@@ -43,7 +44,7 @@ func (a *ArticleDomainService) FindById(id int64, size int32) ([]*entity.Article
 	articles := make([]*po.Article, 0)
 
 	articles, err = a.articleCache.GetList(id, size)
-	if err != nil && err != redis.Nil {
+	if err != nil && !errors.Is(err, redis.Nil) {
 		return nil, err
 	}
 	if len(articles) > 0 {
@@ -91,7 +92,7 @@ func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 	articlePo := po.Article{}
 
 	articleEntity, err = a.articleCache.GetDetail(id)
-	if err != nil && err != redis.Nil {
+	if err != nil && !errors.Is(err, redis.Nil) {
 		a.Logger.ErrorL("获取文章详情缓存失败", id, err.Error())
 		return entity.Article{}, err
 	}

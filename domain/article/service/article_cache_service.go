@@ -3,7 +3,6 @@ package service
 import (
 	"article/domain/article/entity"
 	"article/domain/article/repository/po"
-	"article/infrastructure/util/def"
 	"article/infrastructure/util/goredis"
 	"article/infrastructure/util/util/highperf"
 	"fmt"
@@ -70,8 +69,8 @@ func (*ArticleCache) GetDetail(id int64) (entity.Article, error) {
 	article.Status = int8(status)
 	article.Source, err = strconv.Atoi(m["source"])
 	article.CommentCount, err = strconv.Atoi(m["comment_count"])
-	article.CreateTime, err = time.Parse(def.ISO8601Layout, m["create_time"])
-	article.UpdateTime, err = time.Parse(def.ISO8601Layout, m["update_time"])
+	article.CreateTime, err = time.Parse(time.RFC3339, m["create_time"])
+	article.UpdateTime, err = time.Parse(time.RFC3339, m["update_time"])
 
 	if err := sonic.Unmarshal(highperf.Str2bytes(m["article_seo"]), &article.ArticleSEO); err != nil {
 		return *article, err
