@@ -82,6 +82,9 @@ func (a *ArticleDomainService) GetById(id int64) (entity.Article, error) {
 			func() error {
 				return a.articleCache.HitsIncr(id)
 			},
+			func() error {
+				return a.articleCache.ClearList()
+			},
 		)).Publish(a.Context); err != nil {
 			a.Logger.ErrorL("发布ArticleRead事件失败", id, err.Error())
 		}

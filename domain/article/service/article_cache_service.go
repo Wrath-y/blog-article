@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	ListStrKey    = "blog:article:list:%d:%d"
-	DetailHashKey = "blog:article:%d"
+	ListStrKey     = "blog:article:list:%d:%d"
+	ListStrKeyScan = "blog:article:list:*"
+	DetailHashKey  = "blog:article:%d"
 	//SEODetailHashKey = "blog:article:seo:%d"
 )
 
@@ -117,4 +118,25 @@ func (*ArticleCache) HitsIncr(id int64) error {
 	}
 
 	return goredis.Client.Expire(key, time.Hour*24*7).Err()
+}
+
+func (*ArticleCache) ClearList() error {
+	var cursor uint64
+	for {
+		keys, nextCursor, err := goredis.Client.Scan(cursor, ListStrKeyScan, 10).Result()
+		if err != nil {
+			return err
+		}
+		for _, key := range keys {
+			err := goredis.Client.Del(key).Err()
+			if err != nil {
+				return err
+			}
+		}
+		cursor = nextCursor
+		if cursor == 0 {
+			break
+		}
+	}
+	return nil
 }
